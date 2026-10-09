@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iPad 面部表情辨識</title>
+  <!-- 載入 face-api.js AI 模型套件 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #121212;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    #container {
+      position: relative;
+      width: 90vw;
+      max-width: 640px;
+      margin-top: 20px;
+    }
+    video, canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #status {
+      margin: 15px;
+      font-size: 1.2rem;
+      color: #00e676;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>iPad 臉部表情辨識</h2>
+  <div id="status">正在載入 AI 模型...</div>
+
+  <div id="container">
+    <video id="video" playsinline autoplay muted></video>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const statusText = document.getElementById('status');
+
+    // 1. 定義情緒對應的英文字母與 Emoji 符號
+    const EMOTION_MAP = {
+      happy: "A: Happy 🙂",
+      sad: "B: Sad ☹️",
+      angry: "C: Angry 😡",
+      surprised: "D: Surprised 😲",
+      fearful: "E: Fearful 😨",
+      disgusted: "F: Disgusted 🤢",
+      neutral: "G: Neutral 😐"
+    };
+
+    // 2. 載入模型並開啟相機
+    async function init() {
+      const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+      
+      // 載入人臉偵測與表情模型
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+
+      statusText.innerText = "模型載入成功！正在存取 iPad 相機...";
+      startVideo();
+    }
+
+    // 3. 請求 iPad 相機權限
+    function startVideo() {
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user', // 'user' 為前鏡頭，'environment' 為後鏡頭
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        },
+        audio: false
+      })
+      .then(stream => {
+        video.srcObject = stream;
+        statusText.innerText = "辨識運作中...";
+      })
+      .catch(err => {
+        console.error(err);
+        statusText.innerText = "無法存取相機，請確認 Safari 的權限設定。";
+      });
+    }
+
+    // 4. 當影片播放時開始進行即時辨識
+    video.addEventListener('play', () => {
+      const canvas = faceapi.createCanvasFromMedia(video);
+      document.getElementById('container').append(canvas);
+
+      const displaySize = { width: video.clientWidth, height: video.clientHeight };
+      faceapi.matchDimensions(canvas, displaySize);
+
+      setInterval(async () => {
+        // 辨識臉部與表情
+        const detections = await faceapi.detectAllFaces(
+          video, 
+          new faceapi.TinyFaceDetectorOptions()
+        ).withFaceExpressions();
+
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 繪製結果
+        resizedDetections.forEach(detection => {
+          const { x, y, width, height } = detection.detection.box;
+          const expressions = detection.expressions;
+
+          // 找出信心度最高的情緒
+          let maxEmotion = 'neutral';
+          let maxScore = 0;
+          for (const [emotion, score] of Object.entries(expressions)) {
+            if (score > maxScore) {
+              maxScore = score;
+              maxEmotion = emotion;
+            }
+          }
+
+          const displayText = EMOTION_MAP[maxEmotion] || `G: Neutral 😐`;
+
+          // 畫人臉外框
+          ctx.strokeStyle = '#00FF00';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(x, y, width, height);
+
+          // 印出文字與表情符號
+          ctx.fillStyle = '#00FF00';
+          ctx.font = '22px sans-serif';
+          ctx.fillText(displayText, x, y > 30 ? y - 10 : y + 30);
+        });
+      }, 150); // 每 150 毫秒刷新一次
+    });
+
+    init();
+  </script>
+</body>
+</html>
