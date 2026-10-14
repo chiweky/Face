@@ -59,7 +59,7 @@
       happy: "A: Happy 🙂",
       sad: "B: Sad ☹️",
       angry: "C: Angry 😡",
-      surprised: "D:F: Hungry 🤢",      
+      surprised: "D:F: Hungry 🤢",   
     };
 
     // 2. 載入模型並開啟相機
@@ -79,8 +79,8 @@
       navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'user', // 'user' 為前鏡頭，'environment' 為後鏡頭
-          width: { ideal: 640 },
-          height: { ideal: 480 }
+          width: { ideal: 1280 },
+          height: { ideal: 960 }
         },
         audio: false
       })
@@ -137,10 +137,10 @@
 
           // 印出文字與表情符號
           ctx.fillStyle = '#00FF00';
-          ctx.font = '22px sans-serif';
+          ctx.font = '100px sans-serif';
           ctx.fillText(displayText, x, y > 30 ? y - 10 : y + 30);
         });
-      }, 150); // 每 150 毫秒刷新一次
+      }, 150); // 每 15秒刷新一次
     });
 
     init();
