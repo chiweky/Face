@@ -56,10 +56,10 @@
 
     // 1. 定義情緒對應的英文字母與 Emoji 符號
     const EMOTION_MAP = {
-      happy: "A: Happy 🙂",
-      sad: "B: Sad ☹️",
-      angry: "C: Angry 😡",
-      surprised: "D:F: Hungry 🤢",   
+      happy: "Happy 🙂",
+      sad: "Sad ☹️",
+      angry: "Angry 😡",
+      disgusted: "Hungry 🤢",   
     };
 
     // 2. 載入模型並開啟相機
@@ -79,8 +79,8 @@
       navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'user', // 'user' 為前鏡頭，'environment' 為後鏡頭
-          width: { ideal: 1280 },
-          height: { ideal: 960 }
+          width: { ideal: 960 },
+          height: { ideal: 1280 }
         },
         audio: false
       })
@@ -127,8 +127,6 @@
               maxEmotion = emotion;
             }
           }
-
-          const displayText = EMOTION_MAP[maxEmotion] || `G: Neutral 😐`;
 
           // 畫人臉外框
           ctx.strokeStyle = '#00FF00';
