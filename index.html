@@ -127,6 +127,7 @@
               maxEmotion = emotion;
             }
           }
+          const displayText = EMOTION_MAP[maxEmotion] || `😐`;
 
           // 畫人臉外框
           ctx.strokeStyle = '#00FF00';
@@ -136,7 +137,7 @@
           // 印出文字與表情符號
           ctx.fillStyle = '#00FF00';
           ctx.font = '100px sans-serif';
-          ctx.fillText(displayText, x, y > 30 ? y - 10 : y + 30);
+          ctx.fillText(displayText, x, y > 30 ? y +0 : y +0);
         });
       }, 150); // 每 150毫秒刷新一次
     });
